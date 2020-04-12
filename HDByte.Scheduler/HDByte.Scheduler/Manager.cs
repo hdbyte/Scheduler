@@ -21,7 +21,7 @@ namespace HDByte.Scheduler
             _jobQueue.Add(job);
         }
 
-        private void ActionQueueConsumer()
+        private void JobQueueConsumerThread()
         {
             while (!_jobQueue.IsCompleted)
             {
@@ -39,7 +39,7 @@ namespace HDByte.Scheduler
         {
             SetupThreadPool();
 
-            var thread = new Thread(() => ActionQueueConsumer());
+            var thread = new Thread(() => JobQueueConsumerThread());
             thread.IsBackground = true;
             thread.Start();
         }
