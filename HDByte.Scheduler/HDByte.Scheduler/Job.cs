@@ -8,6 +8,6 @@ namespace HDByte.Scheduler
     {
         public Action Action { get; set; }
 
-        public bool IsAsync { get; set; } = false;
+        public string Name { get; set; }
     }
 }

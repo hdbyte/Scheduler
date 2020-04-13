@@ -9,28 +9,34 @@ namespace HDByte.Scheduler
     {
         public BlockingCollection<Job> _jobQueue = new BlockingCollection<Job>();
 
-        public void Add(Action action)
+        public void Add(Action jobAction)
         {
-            var job = new Job() { Action = action, IsAsync = false };
+            AddToJobQueue(jobAction, "");
+        }
+
+        public void Add(string jobName, Action jobAction)
+        {
+            AddToJobQueue(jobAction, jobName);
+        }
+
+        private void AddToJobQueue(Action jobAction, string jobName = "")
+        {
+            var job = new Job() { Action = jobAction, Name = jobName };
             _jobQueue.Add(job);
         }
 
         public void AddAsync(Action action)
         {
-            var job = new Job() { Action = action, IsAsync = true };
-            _jobQueue.Add(job);
+            Task.Run(() => action());
         }
 
-        private void JobQueueConsumerThread()
+        private void JobQueueThreadConsumer()
         {
             while (!_jobQueue.IsCompleted)
             {
                 if (_jobQueue.TryTake(out Job job))
                 {
-                    if (job.IsAsync)
-                        Task.Run(() => job.Action());
-                    else
-                        job.Action();
+                    job.Action();
                 }
             }
         }
@@ -39,7 +45,7 @@ namespace HDByte.Scheduler
         {
             SetupThreadPool();
 
-            var thread = new Thread(() => JobQueueConsumerThread());
+            var thread = new Thread(() => JobQueueThreadConsumer());
             thread.IsBackground = true;
             thread.Start();
         }
